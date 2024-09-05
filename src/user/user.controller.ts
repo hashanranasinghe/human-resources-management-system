@@ -14,24 +14,24 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
-import { AutherizationGuard } from 'src/guards/autherization.guard';
-import { Role } from 'src/decorators/role.decorator';
+import { AuthorizationGuard } from 'src/guards/autherization.guard';
+import { Roles } from 'src/decorators/role.decorator';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('sign-up')
-  create(@Body(ValidationPipe) createUserDto: CreateUserDto) {
-    return this.userService.signUp(createUserDto);
+  createUser(@Body(ValidationPipe) createUserDto: CreateUserDto) {
+    return this.userService.createUser(createUserDto);
   }
   @Post('sign-in')
   signIn(@Body(ValidationPipe) loginUserDto: LoginAuthDto) {
     return this.userService.signIn(loginUserDto);
   }
 
-  @Role('ADMIN')
-  @UseGuards(AuthenticationGuard, AutherizationGuard)
+  @Roles(['ADMIN', 'SUPERADMIN'])
+  @UseGuards(AuthenticationGuard, AuthorizationGuard)
   @Get()
   findAll() {
     return this.userService.findAll();

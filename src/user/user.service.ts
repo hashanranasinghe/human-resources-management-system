@@ -17,8 +17,8 @@ export class UserService {
     private jwtService: JwtService,
   ) {}
 
-  async signUp(createEmployeeDto: CreateUserDto) {
-    const emailInUse = await this.databaseService.user.findUnique({
+  async createUser(createEmployeeDto: CreateUserDto) {
+    const emailInUse = await this.databaseService.employee.findUnique({
       where: {
         email: createEmployeeDto.email,
       },
@@ -28,7 +28,7 @@ export class UserService {
     }
     const hashPassword = await bcrypt.hash(createEmployeeDto.password, 10);
 
-    return this.databaseService.user.create({
+    return this.databaseService.employee.create({
       data: {
         ...createEmployeeDto,
         password: hashPassword,
@@ -38,7 +38,7 @@ export class UserService {
 
   async signIn(credentials: LoginAuthDto) {
     const { email, password } = credentials;
-    const user = await this.databaseService.user.findUnique({
+    const user = await this.databaseService.employee.findUnique({
       where: {
         email: email,
       },
@@ -64,7 +64,7 @@ export class UserService {
   }
 
   findAll() {
-    return this.databaseService.user.findMany();
+    return this.databaseService.employee.findMany();
   }
 
   findOne(id: number) {

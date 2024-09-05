@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import config from './config/config';
 import { JwtModule } from '@nestjs/jwt';
+import { DepartmentModule } from './department/department.module';
 @Module({
   imports: [
     UserModule,
@@ -24,6 +25,7 @@ import { JwtModule } from '@nestjs/jwt';
       global: true,
       inject: [ConfigService],
     }),
+    DepartmentModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService],
