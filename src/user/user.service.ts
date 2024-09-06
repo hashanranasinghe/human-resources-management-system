@@ -9,6 +9,7 @@ import { DatabaseService } from 'src/database/database.service';
 import * as bcrypt from 'bcrypt';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { JwtService } from '@nestjs/jwt';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UserService {
@@ -27,10 +28,11 @@ export class UserService {
       throw new BadRequestException('email is already used');
     }
     const hashPassword = await bcrypt.hash(createEmployeeDto.password, 10);
-
+    const uid = uuidv4();
     return this.databaseService.employee.create({
       data: {
         ...createEmployeeDto,
+        uid: uid,
         password: hashPassword,
       },
     });

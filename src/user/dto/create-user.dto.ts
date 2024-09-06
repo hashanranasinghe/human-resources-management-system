@@ -4,16 +4,11 @@ import {
   IsNotEmpty,
   IsString,
   IsInt,
-  IsDate,
   MinLength,
   Matches,
 } from 'class-validator';
 
 export class CreateUserDto {
-  @IsInt()
-  @IsNotEmpty()
-  id: number;
-
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -22,9 +17,9 @@ export class CreateUserDto {
   @IsNotEmpty()
   position: string;
 
-  @IsDate()
+  @IsString()
   @IsNotEmpty()
-  hireDate: Date;
+  hireDate: string;
 
   @IsEmail()
   @IsNotEmpty()

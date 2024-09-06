@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import config from './config/config';
 import { JwtModule } from '@nestjs/jwt';
 import { DepartmentModule } from './department/department.module';
+import { AttendanceModule } from './attendance/attendance.module';
 @Module({
   imports: [
     UserModule,
@@ -26,6 +27,7 @@ import { DepartmentModule } from './department/department.module';
       inject: [ConfigService],
     }),
     DepartmentModule,
+    AttendanceModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService],
