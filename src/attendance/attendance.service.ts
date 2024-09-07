@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class AttendanceService {
-  create(createAttendanceDto: CreateAttendanceDto) {
-    return 'This action adds a new attendance';
+  constructor(private readonly databaseService: DatabaseService) {}
+
+  addAttendance(createAttendanceDto: CreateAttendanceDto) {
+    return this.databaseService.attendance.create({
+      data: createAttendanceDto,
+    });
   }
 
   findAll() {

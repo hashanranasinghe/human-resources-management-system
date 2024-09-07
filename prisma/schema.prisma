@@ -48,9 +48,8 @@ model Attendance {
   id         Int       @id @default(autoincrement())
   employeeId Int
   employee   Employee  @relation("attendance", fields: [employeeId], references: [id])
-  date       DateTime
-  timeIn     DateTime
-  timeOut    DateTime?
+  timeIn     String
+  timeOut    String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
