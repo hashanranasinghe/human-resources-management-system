@@ -45,12 +45,29 @@ model Department {
 }
 
 model Attendance {
-  id         Int       @id @default(autoincrement())
+  id         Int               @id @default(autoincrement())
   employeeId Int
-  employee   Employee  @relation("attendance", fields: [employeeId], references: [id])
-  timeIn     String
-  timeOut    String
+  employee   Employee          @relation("attendance", fields: [employeeId], references: [id])
+  timeIn       String
+  timeOut       String
+  events     AttendanceEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model AttendanceEvent {
+  id           Int        @id @default(autoincrement())
+  attendanceId Int
+  attendance   Attendance @relation(fields: [attendanceId], references: [id])
+  eventType    EventType
+  eventTime    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum EventType {
+  TIME_IN
+  TIME_OUT
 }

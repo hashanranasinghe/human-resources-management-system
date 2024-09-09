@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { DepartmentService } from './department.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
@@ -22,7 +23,7 @@ export class DepartmentController {
   constructor(private readonly departmentService: DepartmentService) {}
 
   @Post()
-  create(@Body() createDepartmentDto: CreateDepartmentDto) {
+  create(@Body(ValidationPipe) createDepartmentDto: CreateDepartmentDto) {
     return this.departmentService.create(createDepartmentDto);
   }
 
