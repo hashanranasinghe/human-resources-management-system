@@ -16,8 +16,8 @@ enum Role {
 }
 
 model Employee {
-  id           Int          @id @default(autoincrement())
-  uid          String       @unique
+  id           Int          @default(autoincrement())
+  refId        String       @id @unique
   name         String
   position     String
   hireDate     String
@@ -27,44 +27,44 @@ model Employee {
   password     String
   manager      Department[] @relation("manager")
   creator      Department[] @relation("creator")
-
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  Attendance Attendance[] @relation("attendance")
+  Attendance   Attendance[] @relation("attendance")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 model Department {
-  id        Int      @id @default(autoincrement())
+  id        Int      @default(autoincrement())
+  refId     String   @id @unique
   name      String
-  managerId Int
-  creatorId Int
-  manager   Employee @relation("manager", fields: [managerId], references: [id])
-  creator   Employee @relation("creator", fields: [creatorId], references: [id])
+  managerId String
+  creatorId String
+  manager   Employee @relation("manager", fields: [managerId], references: [refId])
+  creator   Employee @relation("creator", fields: [creatorId], references: [refId])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Attendance {
-  id         Int               @id @default(autoincrement())
-  employeeId Int
-  employee   Employee          @relation("attendance", fields: [employeeId], references: [id])
-  timeIn       String
-  timeOut       String
+  id         Int               @default(autoincrement())
+  refId      String            @id @unique
+  employeeId String
+  employee   Employee          @relation("attendance", fields: [employeeId], references: [refId])
+  timeIn     String
+  timeOut    String
   events     AttendanceEvent[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
 }
 
 model AttendanceEvent {
-  id           Int        @id @default(autoincrement())
-  attendanceId Int
-  attendance   Attendance @relation(fields: [attendanceId], references: [id])
+  id           Int        @default(autoincrement())
+  refId        String     @id @unique
+  attendanceId String
+  attendance   Attendance @relation(fields: [attendanceId], references: [refId])
   eventType    EventType
   eventTime    String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 enum EventType {

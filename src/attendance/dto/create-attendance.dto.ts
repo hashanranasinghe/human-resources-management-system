@@ -1,9 +1,9 @@
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateAttendanceDto {
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  employeeId: number;
+  employeeId: string;
 
   @IsString()
   @IsNotEmpty()

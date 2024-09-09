@@ -1,10 +1,10 @@
-import { IsEnum, IsInt, IsNotEmpty } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { EventType } from '@prisma/client';
 
 export class CreateAttendanceEventDto {
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  attendanceId: number;
+  attendanceId: string;
 
   @IsEnum(EventType)
   @IsNotEmpty()

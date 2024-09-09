@@ -2,20 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class DepartmentService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   create(createDepartmentDto: CreateDepartmentDto) {
+    const uid = uuidv4();
+
     return this.databaseService.department.create({
       data: {
         name: createDepartmentDto.name,
+        refId: uid,
         creator: {
-          connect: { id: createDepartmentDto.createrId },
+          connect: { refId: createDepartmentDto.createrId },
         },
         manager: {
-          connect: { id: createDepartmentDto.managerId },
+          connect: { refId: createDepartmentDto.managerId },
         },
       },
     });
@@ -30,9 +34,9 @@ export class DepartmentService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const department = await this.databaseService.department.findUnique({
-      where: { id },
+      where: { refId: id },
       include: {
         creator: true,
         manager: true,
@@ -44,24 +48,24 @@ export class DepartmentService {
     return department;
   }
 
-  update(id: number, updateDepartmentDto: UpdateDepartmentDto) {
+  update(id: string, updateDepartmentDto: UpdateDepartmentDto) {
     return this.databaseService.department.update({
-      where: { id },
+      where: { refId: id },
       data: {
         name: updateDepartmentDto.name,
         creator: {
-          connect: { id: updateDepartmentDto.createrId },
+          connect: { refId: updateDepartmentDto.createrId },
         },
         manager: {
-          connect: { id: updateDepartmentDto.managerId },
+          connect: { refId: updateDepartmentDto.managerId },
         },
       },
     });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.databaseService.department.delete({
-      where: { id },
+      where: { refId: id },
     });
   }
 }

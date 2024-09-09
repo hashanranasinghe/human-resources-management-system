@@ -8,8 +8,8 @@ import {
   Delete,
   UseGuards,
   ValidationPipe,
-  ParseIntPipe,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
@@ -24,6 +24,7 @@ import { CreateAttendanceEventDto } from './dto/create-attendance-event.dto';
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
+  @Roles(['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTERN'])
   @Post()
   addAttendance(
     @Body(ValidationPipe) createAttendanceDto: CreateAttendanceDto,
@@ -41,9 +42,9 @@ export class AttendanceController {
   findOne(
     @Param(
       'id',
-      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
     )
-    id: number,
+    id: string,
   ) {
     return this.attendanceService.findOne(id);
   }
@@ -53,9 +54,9 @@ export class AttendanceController {
   update(
     @Param(
       'id',
-      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
     )
-    id: number,
+    id: string,
     @Body() updateAttendanceDto: UpdateAttendanceDto,
   ) {
     return this.attendanceService.update(id, updateAttendanceDto);
@@ -66,13 +67,14 @@ export class AttendanceController {
   remove(
     @Param(
       'id',
-      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
     )
-    id: number,
+    id: string,
   ) {
     return this.attendanceService.remove(id);
   }
 
+  @Roles(['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTERN'])
   @Post('attendance-event')
   addAttendanceEvent(
     @Body(ValidationPipe) createAttendanceEventDto: CreateAttendanceEventDto,
@@ -85,9 +87,9 @@ export class AttendanceController {
   findAttendanceEvents(
     @Param(
       'id',
-      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
     )
-    id: number,
+    id: string,
   ) {
     return this.attendanceService.findAttendanceEvents(id);
   }

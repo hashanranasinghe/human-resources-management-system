@@ -3,6 +3,7 @@ import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateAttendanceEventDto } from './dto/create-attendance-event.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AttendanceService {
@@ -10,7 +11,7 @@ export class AttendanceService {
 
   async addAttendance(createAttendanceDto: CreateAttendanceDto) {
     const employee = await this.databaseService.employee.findUnique({
-      where: { id: createAttendanceDto.employeeId },
+      where: { refId: createAttendanceDto.employeeId },
     });
 
     if (!employee) {
@@ -18,8 +19,10 @@ export class AttendanceService {
         `Employee with ID ${createAttendanceDto.employeeId} not found.`,
       );
     }
+    const uid = uuidv4();
+
     return this.databaseService.attendance.create({
-      data: createAttendanceDto,
+      data: { ...createAttendanceDto, refId: uid },
     });
   }
 
@@ -27,9 +30,9 @@ export class AttendanceService {
     return `This action returns all attendance`;
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const employee = await this.databaseService.employee.findUnique({
-      where: { id: id },
+      where: { refId: id },
     });
 
     if (!employee) {
@@ -48,23 +51,23 @@ export class AttendanceService {
     return attendance;
   }
 
-  async update(id: number, updateAttendanceDto: UpdateAttendanceDto) {
+  async update(id: string, updateAttendanceDto: UpdateAttendanceDto) {
     const attendance = await this.databaseService.attendance.findUnique({
-      where: { id: id },
+      where: { refId: id },
     });
 
     if (!attendance) {
       throw new NotFoundException(`Attendance with ID ${id} not found.`);
     }
     return this.databaseService.attendance.update({
-      where: { id },
+      where: { refId: id },
       data: updateAttendanceDto,
     });
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const attendance = await this.databaseService.attendance.findUnique({
-      where: { id: id },
+      where: { refId: id },
     });
 
     if (!attendance) {
@@ -72,13 +75,13 @@ export class AttendanceService {
     }
 
     return this.databaseService.attendance.delete({
-      where: { id },
+      where: { refId: id },
     });
   }
 
   async addAttendanceEvent(createAttendanceEventDto: CreateAttendanceEventDto) {
     const attendance = await this.databaseService.attendance.findUnique({
-      where: { id: createAttendanceEventDto.attendanceId },
+      where: { refId: createAttendanceEventDto.attendanceId },
     });
 
     if (!attendance) {
@@ -86,14 +89,16 @@ export class AttendanceService {
         `Attendance with ID ${createAttendanceEventDto.attendanceId} not found.`,
       );
     }
+    const uid = uuidv4();
+
     return this.databaseService.attendanceEvent.create({
-      data: createAttendanceEventDto,
+      data: { ...createAttendanceEventDto, refId: uid },
     });
   }
 
-  async findAttendanceEvents(id: number) {
+  async findAttendanceEvents(id: string) {
     const attendance = await this.databaseService.attendance.findUnique({
-      where: { id: id },
+      where: { refId: id },
     });
 
     if (!attendance) {

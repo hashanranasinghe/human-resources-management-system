@@ -32,7 +32,7 @@ export class UserService {
     return this.databaseService.employee.create({
       data: {
         ...createEmployeeDto,
-        uid: uid,
+        refId: uid,
         password: hashPassword,
       },
     });
