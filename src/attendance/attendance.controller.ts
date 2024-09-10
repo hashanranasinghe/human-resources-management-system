@@ -19,6 +19,9 @@ import { AuthorizationGuard } from 'src/guards/autherization.guard';
 import { Roles } from 'src/decorators/role.decorator';
 import { CreateAttendanceEventDto } from './dto/create-attendance-event.dto';
 
+const UUIDPipe = new ParseUUIDPipe({
+  errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE,
+});
 @Controller('attendance')
 @UseGuards(AuthenticationGuard, AuthorizationGuard)
 export class AttendanceController {
@@ -40,10 +43,7 @@ export class AttendanceController {
   @Roles(['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTERN'])
   @Get(':id')
   findOne(
-    @Param(
-      'id',
-      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
-    )
+    @Param('id', UUIDPipe)
     id: string,
   ) {
     return this.attendanceService.findOne(id);
@@ -52,10 +52,7 @@ export class AttendanceController {
   @Roles(['SUPERADMIN', 'ADMIN', 'SUPERVISOR'])
   @Patch(':id')
   update(
-    @Param(
-      'id',
-      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
-    )
+    @Param('id', UUIDPipe)
     id: string,
     @Body() updateAttendanceDto: UpdateAttendanceDto,
   ) {
@@ -65,10 +62,7 @@ export class AttendanceController {
   @Roles(['SUPERADMIN', 'ADMIN', 'SUPERVISOR'])
   @Delete(':id')
   remove(
-    @Param(
-      'id',
-      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
-    )
+    @Param('id', UUIDPipe)
     id: string,
   ) {
     return this.attendanceService.remove(id);
@@ -85,10 +79,7 @@ export class AttendanceController {
   @Roles(['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTERN'])
   @Get('attendance-event/:id')
   findAttendanceEvents(
-    @Param(
-      'id',
-      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
-    )
+    @Param('id', UUIDPipe)
     id: string,
   ) {
     return this.attendanceService.findAttendanceEvents(id);

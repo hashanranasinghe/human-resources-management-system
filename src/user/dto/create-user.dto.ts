@@ -3,10 +3,10 @@ import {
   IsEnum,
   IsNotEmpty,
   IsString,
-  IsInt,
   MinLength,
   Matches,
 } from 'class-validator';
+import { Role } from '@prisma/client';
 
 export class CreateUserDto {
   @IsString()
@@ -25,13 +25,13 @@ export class CreateUserDto {
   @IsNotEmpty()
   email: string;
 
-  @IsEnum(['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTERN'], {
+  @IsEnum(Role, {
     message: 'Valid role required.',
   })
-  role: 'SUPERADMIN' | 'ADMIN' | 'SUPERVISOR' | 'INTERN';
-  @IsInt()
+  role: Role;
+  @IsString()
   @IsNotEmpty()
-  departmentId: number;
+  departmentId: string;
 
   @IsNotEmpty()
   @MinLength(6)

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { DatabaseService } from 'src/database/database.service';
@@ -7,8 +7,34 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class DepartmentService {
   constructor(private readonly databaseService: DatabaseService) {}
+  private async checkDepartmentById(departmentId: string) {
+    const department = await this.databaseService.department.findUnique({
+      where: { refId: departmentId },
+      include: {
+        creator: true,
+        manager: true,
+      },
+    });
 
-  create(createDepartmentDto: CreateDepartmentDto) {
+    if (!department) {
+      throw new NotFoundException(
+        `Department with ID ${departmentId} not found.`,
+      );
+    }
+    return department;
+  }
+  private async checkEmployeeById(id: string) {
+    const employee = await this.databaseService.employee.findUnique({
+      where: { refId: id },
+    });
+    if (!employee)
+      throw new NotFoundException(`Employee with ID ${id} not found`);
+    return employee;
+  }
+
+  async create(createDepartmentDto: CreateDepartmentDto) {
+    await this.checkEmployeeById(createDepartmentDto.createrId);
+    await this.checkEmployeeById(createDepartmentDto.managerId);
     const uid = uuidv4();
 
     return this.databaseService.department.create({
@@ -35,20 +61,11 @@ export class DepartmentService {
   }
 
   async findOne(id: string) {
-    const department = await this.databaseService.department.findUnique({
-      where: { refId: id },
-      include: {
-        creator: true,
-        manager: true,
-      },
-    });
-    if (!department) {
-      throw new Error(`Department with ID ${id} not found`);
-    }
-    return department;
+    return this.checkDepartmentById(id);
   }
 
-  update(id: string, updateDepartmentDto: UpdateDepartmentDto) {
+  async update(id: string, updateDepartmentDto: UpdateDepartmentDto) {
+    await this.checkDepartmentById(id);
     return this.databaseService.department.update({
       where: { refId: id },
       data: {
@@ -63,7 +80,8 @@ export class DepartmentService {
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    await this.checkDepartmentById(id);
     return this.databaseService.department.delete({
       where: { refId: id },
     });

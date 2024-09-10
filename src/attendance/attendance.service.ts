@@ -9,56 +9,59 @@ import { v4 as uuidv4 } from 'uuid';
 export class AttendanceService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async addAttendance(createAttendanceDto: CreateAttendanceDto) {
+  private async checkEmployeeById(employeeId: string) {
     const employee = await this.databaseService.employee.findUnique({
-      where: { refId: createAttendanceDto.employeeId },
+      where: { refId: employeeId },
     });
-
     if (!employee) {
+      throw new NotFoundException(`Employee with ID ${employeeId} not found.`);
+    }
+    return employee;
+  }
+
+  private async checkAttendanceById(attendanceId: string) {
+    const attendance = await this.databaseService.attendance.findUnique({
+      where: { refId: attendanceId },
+    });
+    if (!attendance) {
       throw new NotFoundException(
-        `Employee with ID ${createAttendanceDto.employeeId} not found.`,
+        `Attendance with ID ${attendanceId} not found.`,
       );
     }
-    const uid = uuidv4();
+    return attendance;
+  }
 
+  async addAttendance(createAttendanceDto: CreateAttendanceDto) {
+    await this.checkEmployeeById(createAttendanceDto.employeeId);
+
+    const uid = uuidv4();
     return this.databaseService.attendance.create({
       data: { ...createAttendanceDto, refId: uid },
     });
   }
 
   findAll() {
-    return `This action returns all attendance`;
+    return this.databaseService.attendance.findMany();
   }
 
   async findOne(id: string) {
-    const employee = await this.databaseService.employee.findUnique({
-      where: { refId: id },
-    });
-
-    if (!employee) {
-      throw new NotFoundException(`Employee with ID ${id} not found.`);
-    }
+    await this.checkEmployeeById(id);
 
     const attendance = await this.databaseService.attendance.findMany({
       where: { employeeId: id },
-      include: {
-        employee: true,
-      },
+      include: { employee: true },
     });
     if (attendance.length === 0) {
-      throw new Error(`Empty attendance.`);
+      throw new NotFoundException(
+        `No attendance records found for employee with ID ${id}.`,
+      );
     }
     return attendance;
   }
 
   async update(id: string, updateAttendanceDto: UpdateAttendanceDto) {
-    const attendance = await this.databaseService.attendance.findUnique({
-      where: { refId: id },
-    });
+    await this.checkAttendanceById(id);
 
-    if (!attendance) {
-      throw new NotFoundException(`Attendance with ID ${id} not found.`);
-    }
     return this.databaseService.attendance.update({
       where: { refId: id },
       data: updateAttendanceDto,
@@ -66,13 +69,7 @@ export class AttendanceService {
   }
 
   async remove(id: string) {
-    const attendance = await this.databaseService.attendance.findUnique({
-      where: { refId: id },
-    });
-
-    if (!attendance) {
-      throw new NotFoundException(`Attendance with ID ${id} not found.`);
-    }
+    await this.checkAttendanceById(id);
 
     return this.databaseService.attendance.delete({
       where: { refId: id },
@@ -80,39 +77,26 @@ export class AttendanceService {
   }
 
   async addAttendanceEvent(createAttendanceEventDto: CreateAttendanceEventDto) {
-    const attendance = await this.databaseService.attendance.findUnique({
-      where: { refId: createAttendanceEventDto.attendanceId },
-    });
+    await this.checkAttendanceById(createAttendanceEventDto.attendanceId);
 
-    if (!attendance) {
-      throw new NotFoundException(
-        `Attendance with ID ${createAttendanceEventDto.attendanceId} not found.`,
-      );
-    }
     const uid = uuidv4();
-
     return this.databaseService.attendanceEvent.create({
       data: { ...createAttendanceEventDto, refId: uid },
     });
   }
 
   async findAttendanceEvents(id: string) {
-    const attendance = await this.databaseService.attendance.findUnique({
-      where: { refId: id },
-    });
+    await this.checkAttendanceById(id);
 
-    if (!attendance) {
-      throw new NotFoundException(`Attendance with ID ${id} not found.`);
-    }
-
-    const attendanceEvent = await this.databaseService.attendanceEvent.findMany(
-      {
+    const attendanceEvents =
+      await this.databaseService.attendanceEvent.findMany({
         where: { attendanceId: id },
-      },
-    );
-    if (attendanceEvent.length === 0) {
-      throw new Error(`Empty attendance events.`);
+      });
+    if (attendanceEvents.length === 0) {
+      throw new NotFoundException(
+        `No events found for attendance with ID ${id}.`,
+      );
     }
-    return attendanceEvent;
+    return attendanceEvents;
   }
 }

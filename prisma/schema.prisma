@@ -23,7 +23,8 @@ model Employee {
   hireDate     String
   role         Role
   email        String       @unique
-  departmentId Int?
+  departmentId String?
+  department   Department?   @relation("department", fields: [departmentId], references: [refId])
   password     String
   manager      Department[] @relation("manager")
   creator      Department[] @relation("creator")
@@ -33,15 +34,16 @@ model Employee {
 }
 
 model Department {
-  id        Int      @default(autoincrement())
-  refId     String   @id @unique
+  id        Int        @default(autoincrement())
+  refId     String     @id @unique
   name      String
   managerId String
   creatorId String
-  manager   Employee @relation("manager", fields: [managerId], references: [refId])
-  creator   Employee @relation("creator", fields: [creatorId], references: [refId])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  manager   Employee   @relation("manager", fields: [managerId], references: [refId])
+  creator   Employee   @relation("creator", fields: [creatorId], references: [refId])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Employee  Employee[] @relation("department")
 }
 
 model Attendance {

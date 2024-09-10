@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,23 +16,34 @@ import { v4 as uuidv4 } from 'uuid';
 export class UserService {
   constructor(
     private readonly databaseService: DatabaseService,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async createUser(createEmployeeDto: CreateUserDto) {
-    const emailInUse = await this.databaseService.employee.findUnique({
-      where: {
-        email: createEmployeeDto.email,
-      },
+  private async checkEmployeeByEmail(email: string) {
+    const employee = await this.databaseService.employee.findUnique({
+      where: { email },
     });
-    if (emailInUse) {
-      throw new BadRequestException('email is already used');
-    }
-    const hashPassword = await bcrypt.hash(createEmployeeDto.password, 10);
+    if (employee) throw new BadRequestException('Email is already used');
+  }
+
+  private async checkEmployeeById(id: string) {
+    const employee = await this.databaseService.employee.findUnique({
+      where: { refId: id },
+    });
+    if (!employee)
+      throw new NotFoundException(`Employee with ID ${id} not found`);
+    return employee;
+  }
+
+  async createUser(createUserDto: CreateUserDto) {
+    await this.checkEmployeeByEmail(createUserDto.email);
+
+    const hashPassword = await bcrypt.hash(createUserDto.password, 10);
     const uid = uuidv4();
+
     return this.databaseService.employee.create({
       data: {
-        ...createEmployeeDto,
+        ...createUserDto,
         refId: uid,
         password: hashPassword,
       },
@@ -41,23 +53,18 @@ export class UserService {
   async signIn(credentials: LoginAuthDto) {
     const { email, password } = credentials;
     const user = await this.databaseService.employee.findUnique({
-      where: {
-        email: email,
-      },
+      where: { email },
     });
-    if (!user) {
-      throw new UnauthorizedException('wrong credentials');
-    }
-    const matchPassword = await bcrypt.compare(password, user.password);
-    if (!matchPassword) {
-      throw new UnauthorizedException('Wrong credentials');
-    }
-    const accessToken = await this.generateUserToken(user.id, user.role);
 
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const accessToken = this.generateUserToken(user.id, user.role);
     return { ...accessToken, user: user.id };
   }
 
-  async generateUserToken(userId: number, userRole: string) {
+  generateUserToken(userId: number, userRole: string) {
     const accessToken = this.jwtService.sign(
       { userId, userRole },
       { expiresIn: '1h' },
@@ -69,15 +76,24 @@ export class UserService {
     return this.databaseService.employee.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    return this.checkEmployeeById(id);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    await this.checkEmployeeById(id);
+
+    return this.databaseService.employee.update({
+      where: { refId: id },
+      data: updateUserDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    await this.checkEmployeeById(id);
+
+    return this.databaseService.employee.delete({
+      where: { refId: id },
+    });
   }
 }
