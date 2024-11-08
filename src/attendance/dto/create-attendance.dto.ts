@@ -10,6 +10,5 @@ export class CreateAttendanceDto {
   timeIn: string;
 
   @IsString()
-  @IsNotEmpty()
   timeOut: string;
 }

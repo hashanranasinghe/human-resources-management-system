@@ -16,21 +16,23 @@ enum Role {
 }
 
 model Employee {
-  id           Int          @default(autoincrement())
-  refId        String       @id @unique
+  id           Int            @default(autoincrement())
+  refId        String         @id @unique
   name         String
   position     String
   hireDate     String
   role         Role
-  email        String       @unique
+  email        String         @unique
   departmentId String?
-  department   Department?   @relation("department", fields: [departmentId], references: [refId])
+  department   Department?    @relation("department", fields: [departmentId], references: [refId])
   password     String
-  manager      Department[] @relation("manager")
-  creator      Department[] @relation("creator")
-  Attendance   Attendance[] @relation("attendance")
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  manager      Department[]   @relation("manager")
+  creator      Department[]   @relation("creator")
+  Attendance   Attendance[]   @relation("attendance")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  Employeee    LeaveRequest[] @relation("Employeee")
+  ApprovedBy   LeaveRequest[] @relation("ApprovedBy")
 }
 
 model Department {
@@ -72,4 +74,42 @@ model AttendanceEvent {
 enum EventType {
   TIME_IN
   TIME_OUT
+}
+
+model LeaveType {
+  id          Int     @default(autoincrement())
+  refId       String  @id @unique
+  name        String
+  description String?
+
+  leaveRequests LeaveRequest[]
+}
+
+model LeaveRequest {
+  id            Int           @default(autoincrement())
+  refId         String        @id @unique
+  employeeId    String
+  leaveTypeId   String
+  leaveType     LeaveType     @relation(fields: [leaveTypeId], references: [refId])
+  startDate     DateTime
+  endDate       DateTime?
+  leaveDuration LeaveDuration
+  status        LeaveStatus   @default(PENDING)
+  approvedById  String
+  employee      Employee      @relation("Employeee", fields: [employeeId], references: [refId])
+  approvedBy    Employee      @relation("ApprovedBy", fields: [approvedById], references: [refId])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum LeaveDuration {
+  SHORT_LEAVE
+  HALF_DAY
+  FULL_DAY
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

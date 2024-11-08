@@ -9,7 +9,4 @@ export class CreateAttendanceEventDto {
   @IsEnum(EventType)
   @IsNotEmpty()
   eventType: EventType;
-
-  @IsNotEmpty()
-  eventTime: string;
 }

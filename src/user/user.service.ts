@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -11,12 +10,14 @@ import * as bcrypt from 'bcrypt';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
+import { SharedService } from 'src/shared/shared.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly jwtService: JwtService,
+    private readonly sharedService: SharedService,
   ) {}
 
   private async checkEmployeeByEmail(email: string) {
@@ -24,15 +25,6 @@ export class UserService {
       where: { email },
     });
     if (employee) throw new BadRequestException('Email is already used');
-  }
-
-  private async checkEmployeeById(id: string) {
-    const employee = await this.databaseService.employee.findUnique({
-      where: { refId: id },
-    });
-    if (!employee)
-      throw new NotFoundException(`Employee with ID ${id} not found`);
-    return employee;
   }
 
   async createUser(createUserDto: CreateUserDto) {
@@ -77,11 +69,11 @@ export class UserService {
   }
 
   async findOne(id: string) {
-    return this.checkEmployeeById(id);
+    return this.sharedService.checkEmployeeById(id);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    await this.checkEmployeeById(id);
+    await this.sharedService.checkEmployeeById(id);
 
     return this.databaseService.employee.update({
       where: { refId: id },
@@ -90,7 +82,7 @@ export class UserService {
   }
 
   async remove(id: string) {
-    await this.checkEmployeeById(id);
+    await this.sharedService.checkEmployeeById(id);
 
     return this.databaseService.employee.delete({
       where: { refId: id },
