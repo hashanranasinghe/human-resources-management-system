@@ -52,11 +52,11 @@ export class UserService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const accessToken = this.generateUserToken(user.id, user.role);
-    return { ...accessToken, user: user.id };
+    const accessToken = this.generateUserToken(user.refId, user.role);
+    return { ...accessToken, user: user.refId };
   }
 
-  generateUserToken(userId: number, userRole: string) {
+  generateUserToken(userId: string, userRole: string) {
     const accessToken = this.jwtService.sign(
       { userId, userRole },
       { expiresIn: '1h' },

@@ -16,8 +16,7 @@ enum Role {
 }
 
 model Employee {
-  id           Int            @default(autoincrement())
-  refId        String         @id @unique
+  refId        String         @id @default(uuid()) @unique
   name         String
   position     String
   hireDate     String
@@ -36,8 +35,7 @@ model Employee {
 }
 
 model Department {
-  id        Int        @default(autoincrement())
-  refId     String     @id @unique
+  refId     String     @id @default(uuid()) @unique
   name      String
   managerId String
   creatorId String
@@ -49,8 +47,7 @@ model Department {
 }
 
 model Attendance {
-  id         Int               @default(autoincrement())
-  refId      String            @id @unique
+  refId      String            @id @default(uuid()) @unique
   employeeId String
   employee   Employee          @relation("attendance", fields: [employeeId], references: [refId])
   timeIn     String
@@ -61,8 +58,7 @@ model Attendance {
 }
 
 model AttendanceEvent {
-  id           Int        @default(autoincrement())
-  refId        String     @id @unique
+  refId        String     @id @default(uuid()) @unique
   attendanceId String
   attendance   Attendance @relation(fields: [attendanceId], references: [refId])
   eventType    EventType
@@ -77,8 +73,7 @@ enum EventType {
 }
 
 model LeaveType {
-  id          Int     @default(autoincrement())
-  refId       String  @id @unique
+  refId       String  @id @default(uuid()) @unique
   name        String
   description String?
 
@@ -86,8 +81,7 @@ model LeaveType {
 }
 
 model LeaveRequest {
-  id            Int           @default(autoincrement())
-  refId         String        @id @unique
+  refId         String        @id @default(uuid()) @unique
   employeeId    String
   leaveTypeId   String
   leaveType     LeaveType     @relation(fields: [leaveTypeId], references: [refId])
