@@ -49,6 +49,15 @@ export class AttendanceController {
     return this.attendanceService.findOne(id);
   }
 
+  @Roles(['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'INTERN'])
+  @Get('total-hours/:id')
+  calculateTotalHours(
+    @Param('id', UUIDPipe)
+    id: string,
+  ) {
+    return this.attendanceService.calculateTotalHours(id);
+  }
+
   @Roles(['SUPERADMIN', 'ADMIN', 'SUPERVISOR'])
   @Patch(':id')
   update(

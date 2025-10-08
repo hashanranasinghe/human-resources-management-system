@@ -3,10 +3,14 @@ import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { v4 as uuidv4 } from 'uuid';
+import { SharedService } from 'src/shared/shared.service';
 
 @Injectable()
 export class DepartmentService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly sharedService: SharedService,
+  ) {}
   private async checkDepartmentById(departmentId: string) {
     const department = await this.databaseService.department.findUnique({
       where: { refId: departmentId },
@@ -23,18 +27,10 @@ export class DepartmentService {
     }
     return department;
   }
-  private async checkEmployeeById(id: string) {
-    const employee = await this.databaseService.employee.findUnique({
-      where: { refId: id },
-    });
-    if (!employee)
-      throw new NotFoundException(`Employee with ID ${id} not found`);
-    return employee;
-  }
 
   async create(createDepartmentDto: CreateDepartmentDto) {
-    await this.checkEmployeeById(createDepartmentDto.createrId);
-    await this.checkEmployeeById(createDepartmentDto.managerId);
+    await this.sharedService.checkEmployeeById(createDepartmentDto.createrId);
+    await this.sharedService.checkEmployeeById(createDepartmentDto.managerId);
     const uid = uuidv4();
 
     return this.databaseService.department.create({

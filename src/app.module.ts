@@ -9,6 +9,9 @@ import config from './config/config';
 import { JwtModule } from '@nestjs/jwt';
 import { DepartmentModule } from './department/department.module';
 import { AttendanceModule } from './attendance/attendance.module';
+import { LeaveModule } from './leave/leave.module';
+import { SharedService } from './shared/shared.service';
+import { SharedModule } from './shared/shared.module';
 @Module({
   imports: [
     UserModule,
@@ -28,8 +31,10 @@ import { AttendanceModule } from './attendance/attendance.module';
     }),
     DepartmentModule,
     AttendanceModule,
+    LeaveModule,
+    SharedModule,
   ],
   controllers: [AppController],
-  providers: [AppService, DatabaseService],
+  providers: [AppService, DatabaseService, SharedService],
 })
 export class AppModule {}

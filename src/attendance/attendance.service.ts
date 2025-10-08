@@ -4,20 +4,14 @@ import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateAttendanceEventDto } from './dto/create-attendance-event.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { SharedService } from 'src/shared/shared.service';
 
 @Injectable()
 export class AttendanceService {
-  constructor(private readonly databaseService: DatabaseService) {}
-
-  private async checkEmployeeById(employeeId: string) {
-    const employee = await this.databaseService.employee.findUnique({
-      where: { refId: employeeId },
-    });
-    if (!employee) {
-      throw new NotFoundException(`Employee with ID ${employeeId} not found.`);
-    }
-    return employee;
-  }
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly sharedService: SharedService,
+  ) {}
 
   private async checkAttendanceById(attendanceId: string) {
     const attendance = await this.databaseService.attendance.findUnique({
@@ -32,7 +26,7 @@ export class AttendanceService {
   }
 
   async addAttendance(createAttendanceDto: CreateAttendanceDto) {
-    await this.checkEmployeeById(createAttendanceDto.employeeId);
+    await this.sharedService.checkEmployeeById(createAttendanceDto.employeeId);
 
     const uid = uuidv4();
     return this.databaseService.attendance.create({
@@ -45,18 +39,60 @@ export class AttendanceService {
   }
 
   async findOne(id: string) {
-    await this.checkEmployeeById(id);
+    await this.sharedService.checkEmployeeById(id);
 
-    const attendance = await this.databaseService.attendance.findMany({
+    const attendanceRecords = await this.databaseService.attendance.findMany({
       where: { employeeId: id },
       include: { employee: true },
     });
-    if (attendance.length === 0) {
+
+    if (attendanceRecords.length === 0) {
       throw new NotFoundException(
         `No attendance records found for employee with ID ${id}.`,
       );
     }
-    return attendance;
+
+    const attendanceWithDuration = attendanceRecords.map((record) => {
+      const timeIn = new Date(record.timeIn);
+      const timeOut = new Date(record.timeOut);
+
+      const durationMs = timeOut.getTime() - timeIn.getTime();
+      const durationHours = durationMs / (1000 * 60 * 60);
+
+      return {
+        ...record,
+        durationHours: durationHours.toFixed(2),
+      };
+    });
+
+    return attendanceWithDuration;
+  }
+  async calculateTotalHours(id: string) {
+    await this.sharedService.checkEmployeeById(id);
+
+    const attendanceRecords = await this.databaseService.attendance.findMany({
+      where: { employeeId: id },
+    });
+
+    if (attendanceRecords.length === 0) {
+      throw new NotFoundException(
+        `No attendance records found for employee with ID ${id}.`,
+      );
+    }
+
+    const totalHours = attendanceRecords.reduce((sum, record) => {
+      const timeIn = new Date(record.timeIn);
+      const timeOut = new Date(record.timeOut);
+
+      const durationHours =
+        (timeOut.getTime() - timeIn.getTime()) / (1000 * 60 * 60);
+      return sum + durationHours;
+    }, 0);
+
+    return {
+      employeeId: id,
+      totalHours: parseFloat(totalHours.toFixed(2)),
+    };
   }
 
   async update(id: string, updateAttendanceDto: UpdateAttendanceDto) {
@@ -80,8 +116,13 @@ export class AttendanceService {
     await this.checkAttendanceById(createAttendanceEventDto.attendanceId);
 
     const uid = uuidv4();
+    const currentTime = new Date();
     return this.databaseService.attendanceEvent.create({
-      data: { ...createAttendanceEventDto, refId: uid },
+      data: {
+        ...createAttendanceEventDto,
+        eventTime: currentTime.toISOString(),
+        refId: uid,
+      },
     });
   }
 
