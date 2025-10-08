@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAttendanceDto {
   @IsString()
@@ -7,8 +8,14 @@ export class CreateAttendanceDto {
 
   @IsString()
   @IsNotEmpty()
-  timeIn: string;
+  @Transform(({ value }) => new Date(value))
+  date: string;
 
   @IsString()
-  timeOut: string;
+  @IsOptional()
+  timeIn?: string;
+
+  @IsOptional()
+  @IsString()
+  timeOut?: string;
 }

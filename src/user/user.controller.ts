@@ -1,27 +1,30 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  ValidationPipe,
-  UseGuards,
-  ParseUUIDPipe,
+  Get,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { LoginAuthDto } from './dto/login-auth.dto';
+import { Roles } from 'src/decorators/role.decorator';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/guards/autherization.guard';
-import { Roles } from 'src/decorators/role.decorator';
+import { CreateUserDto } from './dto/create-user.dto';
+import { LoginAuthDto } from './dto/login-auth.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserService } from './user.service';
+import { RefreshTokenGuard } from 'src/guards/refreshToken.guard';
 
 const UUIDPipe = new ParseUUIDPipe({
   errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE,
 });
+
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -30,9 +33,22 @@ export class UserController {
   createUser(@Body(ValidationPipe) createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
   }
+
   @Post('sign-in')
   signIn(@Body(ValidationPipe) loginUserDto: LoginAuthDto) {
     return this.userService.signIn(loginUserDto);
+  }
+
+  @Post('refresh')
+  @UseGuards(RefreshTokenGuard)
+  async refreshToken(@Request() req) {
+    return this.userService.refreshToken(req.refreshToken);
+  }
+
+  @Post('logout')
+  @UseGuards(AuthenticationGuard)
+  async logout(@Request() req) {
+    return this.userService.logout(req.user.userId);
   }
 
   @Roles(['ADMIN', 'SUPERADMIN'])

@@ -3,66 +3,89 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
   SUPERADMIN
   ADMIN
   SUPERVISOR
-  INTERN
+  EMPLOYEE
+  JUNIOR_EMPLOYEE
+}
+
+model Position {
+  id        Int        @default(autoincrement())
+  refId     String     @id @unique
+  title     String     @unique
+  level     Int        // To indicate hierarchy level
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  // Relations
+  employees Employee[]
 }
 
 model Employee {
-  refId        String         @id @default(uuid()) @unique
+  id           Int        @default(autoincrement())
+  refId        String     @id @unique
   name         String
-  position     String
-  hireDate     String
+  positionId   String?     // Reference to Position
+  hireDate     String   
   role         Role
-  email        String         @unique
+  email        String     @unique
   departmentId String?
-  department   Department?    @relation("department", fields: [departmentId], references: [refId])
   password     String
-  manager      Department[]   @relation("manager")
-  creator      Department[]   @relation("creator")
-  Attendance   Attendance[]   @relation("attendance")
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  Employeee    LeaveRequest[] @relation("Employeee")
-  ApprovedBy   LeaveRequest[] @relation("ApprovedBy")
+  refreshToken String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  // Relations
+  position     Position?    @relation(fields: [positionId], references: [refId])
+  department   Department? @relation("department", fields: [departmentId], references: [refId])
+  managedDepts Department[] @relation("manager")
+  createdDepts Department[] @relation("creator")
+  attendance   Attendance[]
 }
 
 model Department {
-  refId     String     @id @default(uuid()) @unique
-  name      String
+  id        Int        @default(autoincrement())
+  refId     String     @id @unique
+  name      String     @unique
   managerId String
   creatorId String
-  manager   Employee   @relation("manager", fields: [managerId], references: [refId])
-  creator   Employee   @relation("creator", fields: [creatorId], references: [refId])
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  Employee  Employee[] @relation("department")
+  
+  // Relations
+  manager   Employee   @relation("manager", fields: [managerId], references: [refId])
+  creator   Employee   @relation("creator", fields: [creatorId], references: [refId])
+  employees Employee[] @relation("department")
 }
 
 model Attendance {
-  refId      String            @id @default(uuid()) @unique
-  employeeId String
-  employee   Employee          @relation("attendance", fields: [employeeId], references: [refId])
-  timeIn     String
-  timeOut    String
+  id         Int               @default(autoincrement())
+  refId      String            @id @unique
+  date       String         
+  employeeId String         
+  timeIn     String?       
+  timeOut    String?         
   events     AttendanceEvent[]
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
+  
+  // Relations
+  employee   Employee          @relation(fields: [employeeId], references: [refId])
 }
 
 model AttendanceEvent {
-  refId        String     @id @default(uuid()) @unique
+  id           Int        @default(autoincrement())
+  refId        String     @id @unique
   attendanceId String
   attendance   Attendance @relation(fields: [attendanceId], references: [refId])
   eventType    EventType
-  eventTime    String
+  eventTime    String   
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -70,40 +93,6 @@ model AttendanceEvent {
 enum EventType {
   TIME_IN
   TIME_OUT
-}
-
-model LeaveType {
-  refId       String  @id @default(uuid()) @unique
-  name        String
-  description String?
-
-  leaveRequests LeaveRequest[]
-}
-
-model LeaveRequest {
-  refId         String        @id @default(uuid()) @unique
-  employeeId    String
-  leaveTypeId   String
-  leaveType     LeaveType     @relation(fields: [leaveTypeId], references: [refId])
-  startDate     DateTime
-  endDate       DateTime?
-  leaveDuration LeaveDuration
-  status        LeaveStatus   @default(PENDING)
-  approvedById  String
-  employee      Employee      @relation("Employeee", fields: [employeeId], references: [refId])
-  approvedBy    Employee      @relation("ApprovedBy", fields: [approvedById], references: [refId])
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-}
-
-enum LeaveDuration {
-  SHORT_LEAVE
-  HALF_DAY
-  FULL_DAY
-}
-
-enum LeaveStatus {
-  PENDING
-  APPROVED
-  REJECTED
+  BREAK_START
+  BREAK_END
 }
