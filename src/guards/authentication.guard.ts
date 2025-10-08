@@ -6,35 +6,35 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Observable } from 'rxjs';
 import { Request } from 'express';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
   constructor(private jwtService: JwtService) {}
+
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    console.log('inside the auth guard');
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTOkenFromHeader(request);
-
-    console.log(token);
+    const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Token not found');
     }
+
     try {
       const payload = this.jwtService.verify(token);
-      request.user = payload.user;
+      request.user = payload;
     } catch (e) {
       Logger.error(e.message);
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Invalid token');
     }
     return true;
   }
 
-  private extractTOkenFromHeader(request: Request): string | undefined {
-    return request.headers.authorization?.split(' ')[1];
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
   }
 }

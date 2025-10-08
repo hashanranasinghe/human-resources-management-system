@@ -3,59 +3,80 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
   SUPERADMIN
   ADMIN
   SUPERVISOR
-  INTERN
+  EMPLOYEE
+  JUNIOR_EMPLOYEE
+}
+
+model Position {
+  id        Int        @default(autoincrement())
+  refId     String     @id @unique
+  title     String     @unique
+  level     Int        // To indicate hierarchy level
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  // Relations
+  employees Employee[]
 }
 
 model Employee {
-  id           Int          @default(autoincrement())
-  refId        String       @id @unique
+  id           Int        @default(autoincrement())
+  refId        String     @id @unique
   name         String
-  position     String
-  hireDate     String
+  positionId   String?     // Reference to Position
+  hireDate     String   
   role         Role
-  email        String       @unique
+  email        String     @unique
   departmentId String?
-  department   Department?   @relation("department", fields: [departmentId], references: [refId])
   password     String
-  manager      Department[] @relation("manager")
-  creator      Department[] @relation("creator")
-  Attendance   Attendance[] @relation("attendance")
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  refreshToken String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  // Relations
+  position     Position?    @relation(fields: [positionId], references: [refId])
+  department   Department? @relation("department", fields: [departmentId], references: [refId])
+  managedDepts Department[] @relation("manager")
+  createdDepts Department[] @relation("creator")
+  attendance   Attendance[]
 }
 
 model Department {
   id        Int        @default(autoincrement())
   refId     String     @id @unique
-  name      String
+  name      String     @unique
   managerId String
   creatorId String
-  manager   Employee   @relation("manager", fields: [managerId], references: [refId])
-  creator   Employee   @relation("creator", fields: [creatorId], references: [refId])
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  Employee  Employee[] @relation("department")
+  
+  // Relations
+  manager   Employee   @relation("manager", fields: [managerId], references: [refId])
+  creator   Employee   @relation("creator", fields: [creatorId], references: [refId])
+  employees Employee[] @relation("department")
 }
 
 model Attendance {
   id         Int               @default(autoincrement())
   refId      String            @id @unique
-  employeeId String
-  employee   Employee          @relation("attendance", fields: [employeeId], references: [refId])
-  timeIn     String
-  timeOut    String
+  date       String         
+  employeeId String         
+  timeIn     String?       
+  timeOut    String?         
   events     AttendanceEvent[]
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
+  
+  // Relations
+  employee   Employee          @relation(fields: [employeeId], references: [refId])
 }
 
 model AttendanceEvent {
@@ -64,7 +85,7 @@ model AttendanceEvent {
   attendanceId String
   attendance   Attendance @relation(fields: [attendanceId], references: [refId])
   eventType    EventType
-  eventTime    String
+  eventTime    String   
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -72,4 +93,6 @@ model AttendanceEvent {
 enum EventType {
   TIME_IN
   TIME_OUT
+  BREAK_START
+  BREAK_END
 }

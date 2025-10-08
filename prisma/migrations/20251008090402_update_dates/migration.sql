@@ -1,0 +1,10 @@
+-- AlterTable
+ALTER TABLE "Attendance" ALTER COLUMN "date" SET DATA TYPE TEXT,
+ALTER COLUMN "timeIn" SET DATA TYPE TEXT,
+ALTER COLUMN "timeOut" SET DATA TYPE TEXT;
+
+-- AlterTable
+ALTER TABLE "AttendanceEvent" ALTER COLUMN "eventTime" SET DATA TYPE TEXT;
+
+-- AlterTable
+ALTER TABLE "Employee" ALTER COLUMN "hireDate" SET DATA TYPE TEXT;
