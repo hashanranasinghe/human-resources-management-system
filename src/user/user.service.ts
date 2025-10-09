@@ -11,12 +11,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   private async checkEmployeeByEmail(email: string) {
@@ -41,9 +43,21 @@ export class UserService {
     const hashPassword = await bcrypt.hash(createUserDto.password, 10);
     const uid = uuidv4();
 
-    return this.databaseService.employee.create({
+    const employee = await this.databaseService.employee.create({
       data: { ...createUserDto, refId: uid, password: hashPassword },
     });
+
+    // Send welcome email
+    try {
+      await this.emailService.sendWelcomeEmail(createUserDto.email, {
+        employeeName: createUserDto.name,
+        position: createUserDto.positionId,
+        loginUrl: `${process.env.FRONTEND_URL}/login`,
+      });
+    } catch (error) {
+      console.error('Error sending welcome email:', error);
+    }
+    return employee;
   }
 
   async signIn(credentials: LoginAuthDto) {

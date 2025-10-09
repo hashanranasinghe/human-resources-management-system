@@ -1,17 +1,19 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { DatabaseService } from './database/database.service';
-import { DatabaseModule } from './database/database.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import config from './config/config';
-import { JwtModule } from '@nestjs/jwt';
-import { DepartmentModule } from './department/department.module';
 import { AttendanceModule } from './attendance/attendance.module';
+import config from './config/config';
+import { DatabaseModule } from './database/database.module';
+import { DatabaseService } from './database/database.service';
+import { DepartmentModule } from './department/department.module';
 import { LeaveModule } from './leave/leave.module';
-import { SharedService } from './shared/shared.service';
+import { PositionModule } from './position/position.module';
 import { SharedModule } from './shared/shared.module';
+import { SharedService } from './shared/shared.service';
+import { UserModule } from './user/user.module';
+import { EmailModule } from './email/email.module';
 @Module({
   imports: [
     UserModule,
@@ -33,6 +35,8 @@ import { SharedModule } from './shared/shared.module';
     AttendanceModule,
     LeaveModule,
     SharedModule,
+    PositionModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService, DatabaseService, SharedService],
